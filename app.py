@@ -5,9 +5,9 @@ def get_range_for_difficulty(difficulty: str):
     if difficulty == "Easy":
         return 1, 20
     if difficulty == "Normal":
-        return 1, 50    # FIX: was 1-100, corrected to 1-50
+        return 1, 50   # FIX: corrected difficulty range after AI review
     if difficulty == "Hard":
-        return 1, 100  # FIX: was 1-50, corrected to 1-100
+        return 1, 100  # FIX: swapped incorrect ranges with AI suggestion
     return 1, 100
 
 
@@ -35,9 +35,9 @@ def check_guess(guess, secret):
 
     try:
         if guess > secret:
-            return "Too High", "📉 Go LOWER!"  # FIX: if your guess is too high, go lower
+            return "Too High", "📉 Go LOWER!"  # FIX: corrected hint direction with AI help
         else:
-            return "Too Low", "📈 Go HIGHER!"  # FIX: if your guess is too low, go higher
+            return "Too Low", "📈 Go HIGHER!"  # FIX: fixed reversed hint logic
     except TypeError:
         g = str(guess)
         if g == secret:
@@ -47,10 +47,7 @@ def check_guess(guess, secret):
         return "Too Low", "📈 Go HIGHER!"
 
 
-# FIX: original score logic was overly complex — wrong guesses alternated between +5/-5
-# (accidentally rewarding bad guesses), and the win bonus used attempt_number+1 so a
-# first-guess win only gave 80 pts. Fixed by starting score at 110 and subtracting 10
-# per guess regardless of outcome: 1st try = 100, 2nd = 90, 3rd = 80, etc.
+# FIX: simplified scoring after AI pointed out inconsistent pattern
 def update_score(current_score: int, outcome: str, attempt_number: int):
     return current_score - 10
 
@@ -68,10 +65,10 @@ difficulty = st.sidebar.selectbox(
 )
 
 attempt_limit_map = {
-    "Easy": 8,
-    "Normal": 6,
+    "Easy": 8, # FIX: changed from 6 after AI review
+    "Normal": 6, # FIX: changed from 8 after AI review
     "Hard": 5,
-}  # FIX: corrected attempt limits so Easy=8, Normal=6, Hard=5
+} 
 attempt_limit = attempt_limit_map[difficulty]
 
 low, high = get_range_for_difficulty(difficulty)
@@ -79,16 +76,14 @@ low, high = get_range_for_difficulty(difficulty)
 st.sidebar.caption(f"Range: {low} to {high}")
 st.sidebar.caption(f"Attempts allowed: {attempt_limit}")
 
-# Store game state per difficulty so switching tabs preserves progress.
-# Each difficulty gets its own dict; only "New Game" resets the current one.
 if "games" not in st.session_state:
-    st.session_state.games = {}
+    st.session_state.games = {} # FIX: use separate session state for each difficulty
 
 def new_game_state(low, high):
     return {
-        "secret": random.randint(low, high),
+        "secret": random.randint(low, high), # FIX: stored secret in session state so it stays stable on rerun
         "attempts": 0,
-        "score": 110,
+        "score": 110,  # FIX: start score higher so it decreases each guess
         "status": "playing",
         "history": [],
         "guess_count": 0,
@@ -96,7 +91,7 @@ def new_game_state(low, high):
     }
 
 if difficulty not in st.session_state.games:
-    st.session_state.games[difficulty] = new_game_state(low, high)
+    st.session_state.games[difficulty] = new_game_state(low, high) # FIX: create new state for each difficulty
 
 game = st.session_state.games[difficulty]
 
@@ -128,8 +123,8 @@ with col3:
     show_hint = st.checkbox("Show hint", value=True)
 
 if new_game:
-    st.session_state.games[difficulty] = new_game_state(low, high)
-    st.session_state.games[difficulty]["last_result"] = {"type": "success", "text": "New game started!"}
+    st.session_state.games[difficulty] = new_game_state(low, high) # FIX: reset full game state instead of partial reset
+    st.session_state.games[difficulty]["last_result"] = {"type": "success", "text": "New game started!"}  
     game = st.session_state.games[difficulty]
     st.rerun()
 
@@ -141,7 +136,7 @@ if game["status"] != "playing":
     st.stop()
 
 if submit:
-    game["guess_count"] += 1  # causes text_input to reset on rerun
+    game["guess_count"] += 1   # FIX: reset input field after each guess
 
     ok, guess_int, err = parse_guess(raw_guess)
 
@@ -175,11 +170,10 @@ if submit:
                     "text": f"Out of attempts! The secret was {game['secret']}. Score: {game['score']}",
                 }
             elif show_hint:
-                game["last_result"] = {"type": "warning", "text": message}
+                game["last_result"] = {"type": "warning", "text": message}  # FIX: only show hints when checkbox is enabled
 
     st.rerun()
 
-# Display the result from the last guess submission
 if game["last_result"]:
     r = game["last_result"]
     if r["type"] == "warning":
