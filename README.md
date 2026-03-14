@@ -26,7 +26,7 @@ It wrote the code, ran away, and now the game is unplayable.
 ## 📝 Document Your Experience
 
 - [ ] Describe the game's purpose.
-- [ ] Detail which bugs you found.
+- [ ] Detail which bugs you found. 
 - [ ] Explain what fixes you applied.
 
 ## 📸 Demo
